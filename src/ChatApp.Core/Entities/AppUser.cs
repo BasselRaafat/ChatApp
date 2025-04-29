@@ -4,6 +4,9 @@ namespace ChatApp.Core.Entities;
 
 public class AppUser : IdentityUser
 {
-    public ICollection<UserConnection> ConnectionId { get; set; } = [];
-    public ICollection<AppUser> Groups { get; set; } = [];
+    public string DisplayName { get; set; } = default!;
+    public ICollection<UserConnection> Connections { get; set; } = [];
+    public ICollection<Group> Groups { get; set; } = [];
+    public ICollection<Chat> ChatsAsUser1 { get; set; } = [];
+    public ICollection<Chat> ChatsAsUser2 { get; set; } = [];
 }
