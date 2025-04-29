@@ -1,3 +1,5 @@
+using ChatApp.Repository.Data;
+
 namespace ChatApp
 {
     public class Program
@@ -8,6 +10,7 @@ namespace ChatApp
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<AppDbContext>();
 
             var app = builder.Build();
 
@@ -26,8 +29,9 @@ namespace ChatApp
 
             app.MapStaticAssets();
             app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}"
+                )
                 .WithStaticAssets();
 
             app.Run();

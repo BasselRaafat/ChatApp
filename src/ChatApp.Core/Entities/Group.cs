@@ -3,4 +3,5 @@
 public class Group : BaseEntity
 {
     public string Name { get; set; } = default!;
+    public ICollection<AppUser> Users { get; set; } = [];
 }
