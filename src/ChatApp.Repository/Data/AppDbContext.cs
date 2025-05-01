@@ -9,8 +9,10 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<UserConnection> UserConnections { get; set; }
     public DbSet<Chat> Chats { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
-    public DbSet<Group> Groups { get; set; }
-    public DbSet<GroupMessage> GroupMessages { get; set; }
+    public DbSet<ChatParticipant> ChatParticipants { get; set; }
+
+    // public DbSet<Group> Groups { get; set; }
+    // public DbSet<GroupMessage> GroupMessages { get; set; }
 
     public AppDbContext(DbContextOptions<IdentityDbContext> options)
         : base(options) { }
