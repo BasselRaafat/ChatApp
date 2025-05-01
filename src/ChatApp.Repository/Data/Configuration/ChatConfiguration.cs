@@ -12,6 +12,7 @@ public class ChatConfiguration : IEntityTypeConfiguration<Chat>
         builder
             .HasOne(C => C.LastMessageSent)
             .WithOne()
-            .HasForeignKey<Chat>(C => C.LastMessageSentId);
+            .HasForeignKey<Chat>(C => C.LastMessageSentId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using ChatApp.Core.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +15,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
     // public DbSet<Group> Groups { get; set; }
     // public DbSet<GroupMessage> GroupMessages { get; set; }
 
-    public AppDbContext(DbContextOptions<IdentityDbContext> options)
+    public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 }

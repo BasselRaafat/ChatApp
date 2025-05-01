@@ -1,19 +1,33 @@
+using ChatApp.Core.Entities;
+using ChatApp.MVC.Extensions;
 using ChatApp.Repository.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-            builder.Services.AddDbContext<AppDbContext>();
+            builder
+                .Services.AddDbContext<AppDbContext>(options =>
+                {
+                    options.UseSqlServer(
+                        builder.Configuration.GetConnectionString("DefaultConnection")
+                    );
+                })
+                .AddIdentity<AppUser, IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
 
             var app = builder.Build();
 
+            await app.ApplyMigrationAsync();
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
