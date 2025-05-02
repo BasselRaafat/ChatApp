@@ -33,4 +33,19 @@ public class ChatRepository : GenericRepository<Chat>, IChatRepository
             .Where(C => C.Id == id)
             .FirstOrDefaultAsync();
     }
+    
+    public async Task MarkMessagesAsSeenAsync(string chatId, string userId)
+    {
+        var messages = _dbContext.ChatMessages
+            .Where(m => m.ChatId == chatId && m.SenderId != userId && !m.Seen);
+
+        
+        foreach (var msg in messages)
+        {
+            msg.Seen = true;
+        }
+
+        await _dbContext.SaveChangesAsync();  
+    }
+
 }
