@@ -12,19 +12,16 @@ namespace ChatApp.MVC.Hubs;
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
-    private readonly IAppUserRepository _appUserRepo;
     private readonly IUserConnectionRepository _userConnectionRepo;
     private readonly IChatRepository _chatRepo;
 
     public ChatHub(
         IChatService chatService,
-        IAppUserRepository appUserRepo,
         IUserConnectionRepository userConnectionRepo,
         IChatRepository chatRepo
     )
     {
         _chatService = chatService;
-        _appUserRepo = appUserRepo;
         _userConnectionRepo = userConnectionRepo;
         _chatRepo = chatRepo;
     }
