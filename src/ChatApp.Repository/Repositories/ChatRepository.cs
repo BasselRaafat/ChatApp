@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using ChatApp.Core.Entities;
 using ChatApp.Core.Interfaces.Repositories;
 using ChatApp.Repository.Data;
@@ -12,18 +13,19 @@ public class ChatRepository : GenericRepository<Chat>, IChatRepository
 
     public async Task<IEnumerable<Chat>> GetAllUserChatsAsync(string userId)
     {
-        // _=await _dbContext
-        //     .Chats.Where(C => C.ChatParticipants.SingleOrDefault(CP => CP.UserId == userId) != null)
-        //     .Include(C => C.LastMessageSent)
-        //     .OrderByDescending(C => C.LastTimeActive)
-        //     .ToListAsync();
-
         return await _dbContext
-            .ChatParticipants.Where(cp => cp.UserId == userId)
-            .Select(cp => cp.Chat)
+            .Chats.Where(C => C.ChatParticipants.SingleOrDefault(CP => CP.UserId == userId) != null)
             .Include(C => C.LastMessageSent)
             .OrderByDescending(C => C.LastTimeActive)
             .ToListAsync();
+
+        // return await _dbContext
+        //     .ChatParticipants.Where(cp => cp.UserId == userId)
+        //     .Include(CP => CP.Chat)
+        //     .Select(cp => cp.Chat)
+        //     .Include(C => C.LastMessageSent)
+        //     .OrderByDescending(C => C.LastTimeActive)
+        //     .ToListAsync();
     }
 
     public async Task<Chat?> GetChatWithMessagesAsync(string id)
@@ -33,19 +35,31 @@ public class ChatRepository : GenericRepository<Chat>, IChatRepository
             .Where(C => C.Id == id)
             .FirstOrDefaultAsync();
     }
-    
+
     public async Task MarkMessagesAsSeenAsync(string chatId, string userId)
     {
-        var messages = _dbContext.ChatMessages
-            .Where(m => m.ChatId == chatId && m.SenderId != userId && !m.Seen);
+        var messages = _dbContext.ChatMessages.Where(m =>
+            m.ChatId == chatId && m.SenderId != userId && !m.Seen
+        );
 
-        
         foreach (var msg in messages)
         {
             msg.Seen = true;
         }
 
-        await _dbContext.SaveChangesAsync();  
+        await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<string>> GetAllGroupIdsAsync(string userId)
+    {
+        return await _dbContext
+            .Chats.Where(c => c.IsGroup)
+            .Where(C => C.ChatParticipants.SingleOrDefault(CP => CP.UserId == userId) != null)
+            .Select(C => C.Id)
+            .ToListAsync();
+        // return await _dbContext
+        //     .ChatParticipants.Where(CP => CP.UserId == userId && CP.Chat.IsGroup)
+        //     .Select(CP => CP.Chat.Id)
+        //     .ToListAsync();
+    }
 }

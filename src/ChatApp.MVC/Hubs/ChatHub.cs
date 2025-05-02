@@ -1,21 +1,32 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
+using ChatApp.Core.Entities;
+using ChatApp.Core.Interfaces.Repositories;
 using ChatApp.Core.Interfaces.Service;
 using ChatApp.Repository.Data;
-using ChatApp.Core.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
-namespace ChatApp.Repository.Hubs;
+namespace ChatApp.MVC.Hubs;
 
+[Authorize]
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
-    private readonly AppDbContext _db;
+    private readonly IAppUserRepository _appUserRepo;
+    private readonly IUserConnectionRepository _userConnectionRepo;
+    private readonly IChatRepository _chatRepo;
 
-    public ChatHub(IChatService chatService, AppDbContext db)
+    public ChatHub(
+        IChatService chatService,
+        IAppUserRepository appUserRepo,
+        IUserConnectionRepository userConnectionRepo,
+        IChatRepository chatRepo
+    )
     {
         _chatService = chatService;
-        _db = db;
+        _appUserRepo = appUserRepo;
+        _userConnectionRepo = userConnectionRepo;
+        _chatRepo = chatRepo;
     }
 
     #region Send Message
@@ -27,7 +38,7 @@ public class ChatHub : Hub
             throw new UnauthorizedAccessException("User not authenticated.");
 
         await _chatService.SendMessage(chatId, userId, message);
-        
+
         var timestamp = DateTime.UtcNow;
         await Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, userId, message, timestamp);
     }
@@ -43,20 +54,20 @@ public class ChatHub : Hub
             throw new UnauthorizedAccessException("User not authenticated.");
 
         var connectionId = Context.ConnectionId;
-        
-        
-        var exists = await _db.UserConnections
-            .AnyAsync(c => c.ConnectionId == connectionId);
 
-        if (!exists)
+        var exists = await _userConnectionRepo.GetByConnectionIdAsync(connectionId);
+
+        if (exists is not null)
         {
-            _db.UserConnections.Add(new UserConnection
-            {
-                UserId = userId,
-                ConnectionId = connectionId
-            });
-            await _db.SaveChangesAsync();
+            await _userConnectionRepo.AddAsync(
+                new UserConnection { UserId = userId, ConnectionId = connectionId }
+            );
+            await _userConnectionRepo.SaveChangesAsync();
         }
+
+        var groupsIds = await _chatRepo.GetAllGroupIdsAsync(userId);
+        foreach (var groupId in groupsIds)
+            await Groups.AddToGroupAsync(connectionId, groupId);
 
         await base.OnConnectedAsync();
     }
@@ -65,17 +76,16 @@ public class ChatHub : Hub
 
     #region On Disconnected
 
-    public override async Task OnDisconnectedAsync(Exception exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var connectionId = Context.ConnectionId;
 
-        var connection = await _db.UserConnections
-            .FirstOrDefaultAsync(c => c.ConnectionId == connectionId);
+        var connection = await _userConnectionRepo.GetByConnectionIdAsync(connectionId);
 
         if (connection != null)
         {
-            _db.UserConnections.Remove(connection);
-            await _db.SaveChangesAsync();
+            _userConnectionRepo.Delete(connection);
+            await _userConnectionRepo.SaveChangesAsync();
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -87,13 +97,13 @@ public class ChatHub : Hub
 
     public async Task JoinChat(string chatId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
-
         var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrWhiteSpace(userId))
             throw new UnauthorizedAccessException("User not authenticated.");
 
         await _chatService.JoinChat(chatId, userId);
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, chatId);
     }
 
     #endregion

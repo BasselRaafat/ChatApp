@@ -9,10 +9,16 @@ namespace ChatApp.Service.Services
         private readonly IGenericRepository<ChatMessage> _chatMessageRepository;
         private readonly IChatRepository _chatRepository;
 
-        public ChatService(IGenericRepository<ChatMessage> chatMessageRepository, IChatRepository chatRepository)
+        public ChatService(
+            IGenericRepository<ChatMessage> chatMessageRepository,
+            IChatRepository chatRepository
+        )
         {
-            _chatMessageRepository = chatMessageRepository ?? throw new ArgumentNullException(nameof(chatMessageRepository));
-            _chatRepository = chatRepository ?? throw new ArgumentNullException(nameof(chatRepository));
+            _chatMessageRepository =
+                chatMessageRepository
+                ?? throw new ArgumentNullException(nameof(chatMessageRepository));
+            _chatRepository =
+                chatRepository ?? throw new ArgumentNullException(nameof(chatRepository));
         }
 
         #region Send Message
@@ -34,10 +40,10 @@ namespace ChatApp.Service.Services
                 MessageText = messageText,
                 Date = DateTime.Now,
                 Seen = false,
-                Delivered = false
+                Delivered = false,
             };
 
-            await _chatMessageRepository.CreateAsync(message);
+            await _chatMessageRepository.AddAsync(message);
 
             var chat = await _chatRepository.GetByIdAsync(message.ChatId);
             if (chat is null)
@@ -80,3 +86,4 @@ namespace ChatApp.Service.Services
         #endregion
     }
 }
+

@@ -6,26 +6,20 @@ namespace ChatApp.Repository.Repositories;
 
 public class AppUserRepository : IAppUserRepository
 {
-    private readonly AppDbContext _dbcontext;
+    private readonly AppDbContext _dbContext;
 
     public AppUserRepository(AppDbContext dbcontext)
     {
-        _dbcontext = dbcontext;
+        _dbContext = dbcontext;
     }
 
     public async Task<IEnumerable<string>> GetAllConnectionIdsForUserAsync(string id)
     {
-        return await _dbcontext
+        return await _dbContext
             .UserConnections.Where(C => C.UserId == id)
             .Select(C => C.ConnectionId)
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<string>> GetAllGroupIdsAsync(string id)
-    {
-        return await _dbcontext
-            .ChatParticipants.Where(CP => CP.UserId == id && CP.Chat.IsGroup)
-            .Select(CP => CP.Chat.Id)
-            .ToListAsync();
-    }
+    public async Task SaveChangesAsync() => await _dbContext.SaveChangesAsync();
 }

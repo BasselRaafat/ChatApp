@@ -6,6 +6,6 @@ public interface IChatRepository : IGenericRepository<Chat>
 {
     Task<IEnumerable<Chat>> GetAllUserChatsAsync(string userId);
     Task<Chat?> GetChatWithMessagesAsync(string id);
-
+    Task<IEnumerable<string>> GetAllGroupIdsAsync(string id);
     Task MarkMessagesAsSeenAsync(string chatId, string userId);
 }

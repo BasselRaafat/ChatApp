@@ -28,7 +28,7 @@ public class GenericRepository<T> : IGenericRepository<T>
             .FirstOrDefaultAsync(Entity => Entity.Id == id);
     }
 
-    public async Task CreateAsync(T entity)
+    public async Task AddAsync(T entity)
     {
         await _dbContext.AddAsync(entity);
     }
@@ -42,7 +42,6 @@ public class GenericRepository<T> : IGenericRepository<T>
     {
         _dbContext.Remove(entity);
     }
+
     public async Task SaveChangesAsync() => await _dbContext.SaveChangesAsync();
-    
-    
 }
