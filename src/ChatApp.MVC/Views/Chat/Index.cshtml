@@ -1,0 +1,67 @@
+﻿@model ChatApp.Core.Entities.Chat
+
+@{
+    ViewBag.Title = "Chat: " + Model.Name;
+}
+
+<!-- Include external dependencies -->
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" asp-append-version="true" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.6.8-fix/jquery.nicescroll.min.js" asp-append-version="true"></script>
+
+<div class="container">
+    <div class="content container-fluid bootstrap snippets bootdey">
+        <div class="row row-broken">
+            <div class="col-sm-3 col-xs-12">
+                <div class="col-inside-lg decor-default chat" style="overflow: hidden; outline: none;" tabindex="5000">
+                    <div class="chat-users">
+                        <h6>Online</h6>
+                        <!-- User list (static for now, will be dynamic later) -->
+                        @foreach (var user in ViewBag.OnlineUsers ?? Enumerable.Empty<dynamic>())
+                        {
+                            <div class="user">
+                                <div class="avatar">
+                                    <img src="@user.AvatarUrl" alt="@user.Name" />
+                                    <div class="status @(user.Status.ToLower())"></div>
+                                </div>
+                                <div class="name">@user.Name</div>
+                                <div class="mood">@user.Mood</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-9 col-xs-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
+                <div class="col-inside-lg decor-default">
+                    <div class="chat-body">
+                        <h6>Mini Chat</h6>
+                        <!-- Messages (dynamic from ViewBag.Messages) -->
+                        @foreach (var message in ViewBag.Messages ?? Enumerable.Empty<ChatApp.Core.Entities.ChatMessage>())
+                        {
+                            <div class="answer @(message.SenderId == User.Identity.Name ? "right" : "left")">
+                                <div class="avatar">
+                                    <img src="@(message.SenderId == User.Identity.Name ? "https://bootdey.com/img/Content/avatar/avatar2.png" : "https://bootdey.com/img/Content/avatar/avatar1.png")" alt="@message.SenderId" />
+                                    <div class="status offline"></div> <!-- Status can be dynamic later -->
+                                </div>
+                                <div class="name">Alexander Herthic</div>
+                                <div class="text">
+                                    @message.MessageText
+                                </div>
+                                <div class="time">@message.Date.ToString("hh:mm tt")</div>
+                            </div>
+                        }
+                        <div class="answer-add">
+                            <input id="messageInput" placeholder="Write a message" />
+                            <span class="answer-btn answer-btn-1"></span>
+                            <span class="answer-btn answer-btn-2"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include SignalR and custom JS (to be added later) -->
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" asp-append-version="true"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>

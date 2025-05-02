@@ -2,6 +2,8 @@ html {
   font-size: 14px;
 }
 
+@import url('chat.css');
+
 @media (min-width: 768px) {
   html {
     font-size: 16px;
