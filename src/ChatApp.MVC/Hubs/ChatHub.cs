@@ -46,17 +46,15 @@ public class ChatHub : Hub<IChatHub>
         var displayName = user?.DisplayName ?? "Unknown";
 
         var timestamp = DateTime.UtcNow;
-        var chat =
-            await _chatRepo.GetChatWithMessagesAsync(chatId)
-            ?? throw new Exception("chatnot found");
-        var reciverId =
-            (chat.ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)?.UserId)
-            ?? throw new Exception("user not found");
-        var UserConnections = await _userConnectionRepo.GetAllUserConnections(reciverId);
+        // var chat =
+        //     await _chatRepo.GetChatWithMessagesAsync(chatId)
+        //     ?? throw new Exception("chatnot found");
+        // var reciverId =
+        //     (chat.ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)?.UserId)
+        //     ?? throw new Exception("user not found");
+        // var UserConnections = await _userConnectionRepo.GetAllUserConnections(reciverId);
         // Send message to group
-            await Clients
-                .Group(chatId)
-                .ReceiveMessage(chatId, userId, message, timestamp, displayName);
+        await Clients.Group(chatId).ReceiveMessage(chatId, userId, message, timestamp, displayName);
     }
 
     #endregion
