@@ -3,7 +3,6 @@ using ChatApp.Core.Entities;
 using ChatApp.Core.Interfaces.Repositories;
 using ChatApp.Core.Interfaces.Service;
 using ChatApp.MVC.Hubs.Interfaces;
-using ChatApp.Repository.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
