@@ -103,7 +103,6 @@ namespace ChatApp.Repository.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LastMessageSentId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("LastTimeActive")
@@ -115,7 +114,8 @@ namespace ChatApp.Repository.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LastMessageSentId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[LastMessageSentId] IS NOT NULL");
 
                     b.ToTable("Chats");
                 });
@@ -323,8 +323,7 @@ namespace ChatApp.Repository.Data.Migrations
                     b.HasOne("ChatApp.Core.Entities.ChatMessage", "LastMessageSent")
                         .WithOne()
                         .HasForeignKey("ChatApp.Core.Entities.Chat", "LastMessageSentId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("LastMessageSent");
                 });
