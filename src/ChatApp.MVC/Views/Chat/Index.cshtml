@@ -1,21 +1,24 @@
 ﻿@model ChatApp.Core.Entities.Chat
+@using System.Security.Claims
 
 @{
-    ViewBag.Title = "Chat: " + Model.Name;
+ViewBag.Title = "Chat: " + Model.Name;
+var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 }
 
-<!-- Include external dependencies -->
-<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" asp-append-version="true" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.6.8-fix/jquery.nicescroll.min.js" asp-append-version="true"></script>
+<!-- External dependencies -->
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
 <div class="container">
     <div class="content container-fluid bootstrap snippets bootdey">
         <div class="row row-broken">
+            <!-- Online users (optional) -->
             <div class="col-sm-3 col-xs-12">
-                <div class="col-inside-lg decor-default chat" style="overflow: hidden; outline: none;" tabindex="5000">
+                <div class="col-inside-lg decor-default chat" tabindex="5000">
                     <div class="chat-users">
                         <h6>Online</h6>
-                        <!-- User list (static for now, will be dynamic later) -->
                         @foreach (var user in ViewBag.OnlineUsers ?? Enumerable.Empty<dynamic>())
                         {
                             <div class="user">
@@ -25,34 +28,32 @@
                                 </div>
                                 <div class="name">@user.Name</div>
                                 <div class="mood">@user.Mood</div>
-                            </div>
+                        </div>
                         }
                     </div>
                 </div>
             </div>
-            <div class="col-sm-9 col-xs-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
+
+            <!-- Chat messages and input -->
+            <div class="col-sm-9 col-xs-12 chat" tabindex="5001">
                 <div class="col-inside-lg decor-default">
-                    <div class="chat-body">
+                    <div class="chat-body" id="chatBody">
                         <h6>Mini Chat</h6>
-                        <!-- Messages (dynamic from ViewBag.Messages) -->
+
                         @foreach (var message in ViewBag.Messages ?? Enumerable.Empty<ChatApp.Core.Entities.ChatMessage>())
                         {
-                            <div class="answer @(message.SenderId == User.Identity.Name ? "right" : "left")">
-                                <div class="avatar">
-                                    <img src="@(message.SenderId == User.Identity.Name ? "https://bootdey.com/img/Content/avatar/avatar2.png" : "https://bootdey.com/img/Content/avatar/avatar1.png")" alt="@message.SenderId" />
-                                    <div class="status offline"></div> <!-- Status can be dynamic later -->
-                                </div>
-                                <div class="name">Alexander Herthic</div>
-                                <div class="text">
-                                    @message.MessageText
-                                </div>
-                                <div class="time">@message.Date.ToString("hh:mm tt")</div>
+                        <div class="answer @(message.SenderId == currentUserId ? "right" : "left")">
+                            <div class="avatar">
+                                <img src="@(message.SenderId == currentUserId ? "/images/user2.png" : "/images/user1.png")" />
                             </div>
+                            <div class="text">@message.MessageText</div>
+                            <div class="time">@message.Date.ToString("hh:mm tt")</div>
+                        </div>
                         }
-                        <div class="answer-add">
-                            <input id="messageInput" placeholder="Write a message" />
-                            <span class="answer-btn answer-btn-1"></span>
-                            <span class="answer-btn answer-btn-2"></span>
+
+                        <div class="answer-add mt-3 d-flex">
+                            <input id="messageInput" class="form-control" placeholder="Write a message" />
+                            <button id="sendMessageBtn" class="btn btn-primary ms-2">Send</button>
                         </div>
                     </div>
                 </div>
@@ -61,7 +62,83 @@
     </div>
 </div>
 
-<!-- Include SignalR and custom JS (to be added later) -->
-<script src="~/js/site.js" asp-append-version="true"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js" asp-append-version="true"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
+<!-- SignalR and Chat JS -->
+<script>
+    const currentUserId = '@currentUserId';
+    const chatId = '@Model.Id';
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .build();
+
+    connection.on("ReceiveMessage", function (chatIdFromHub, senderId, messageText, timestamp) {
+        if (chatIdFromHub !== chatId) return;
+
+        const isMine = senderId === currentUserId;
+        const html = `
+            <div class="answer ${isMine ? "right" : "left"}">
+                <div class="avatar">
+                    <img src="${isMine ? "/images/user2.png" : "/images/user1.png"}" />
+                </div>
+                <div class="text">${messageText}</div>
+                <div class="time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>`;
+        document.getElementById("chatBody").insertAdjacentHTML("beforeend", html);
+    });
+
+    connection.start().then(() => {
+        console.log("SignalR connected.");
+        connection.invoke("JoinChat", chatId);
+    }).catch(err => console.error(err.toString()));
+
+    document.getElementById("sendMessageBtn").addEventListener("click", function () {
+        const messageInput = document.getElementById("messageInput");
+        const messageText = messageInput.value.trim();
+        if (!messageText) return;
+
+        connection.invoke("SendMessage", chatId, messageText)
+            .then(() => messageInput.value = "")
+            .catch(err => console.error(err.toString()));
+    });
+</script>
+
+<style>
+    .chat-body {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .answer {
+        margin-bottom: 15px;
+    }
+
+    .answer.right {
+        text-align: right;
+    }
+
+    .answer.left {
+        text-align: left;
+    }
+
+    .avatar img {
+        width: 40px;
+        border-radius: 50%;
+    }
+
+    .text {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 15px;
+        background: #f1f1f1;
+        margin: 5px;
+    }
+
+    .answer.right .text {
+        background: #d1ecf1;
+    }
+
+    .time {
+        font-size: 0.8em;
+        color: gray;
+    }
+</style>

@@ -1,0 +1,58 @@
+﻿@using ChatApp.Core.Entities
+@using Microsoft.AspNetCore.Identity
+@model string
+@inject ChatApp.Core.Interfaces.Repositories.IAppUserRepository _userRepository
+@inject UserManager<AppUser> _userManager
+
+@{
+    ViewBag.Title = "Create Chat";
+}
+
+<div class="container">
+    <h2>Create a New Chat</h2>
+    <form asp-action="Create" method="post" class="mt-4">
+        <div class="form-group">
+            <label for="chatName">Chat Name</label>
+            <input type="text" class="form-control" id="chatName" name="chatName" required />
+        </div>
+
+        <div class="form-group" id="userSelection">
+            <label for="userId">Select User (for one-on-one chat)</label>
+            <select class="form-control" id="userId" name="userId" required>
+                <option value="">-- Select a user --</option>
+                @foreach (var user in _userManager.Users)
+                {
+                    <option value="@user.Id">@user.DisplayName (@user.Email)</option>
+                }
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Create Chat</button>
+        <a asp-action="List" class="btn btn-secondary mt-3 ms-2">Cancel</a>
+    </form>
+</div>
+
+<script>
+    function toggleUserSelection(checkbox) {
+        const userSelection = document.getElementById("userSelection");
+        userSelection.style.display = checkbox.checked ? "none" : "block";
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("userSelection").style.display = "block";
+    });
+</script>
+
+<style>
+    .container {
+        margin-top: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .btn {
+        margin-right: 5px;
+    }
+</style>
