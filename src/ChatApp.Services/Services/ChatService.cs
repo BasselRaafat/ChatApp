@@ -54,6 +54,7 @@ namespace ChatApp.Service.Services
             _chatRepository.Update(chat);
 
             await _chatRepository.SaveChangesAsync();
+            await _chatMessageRepository.SaveChangesAsync();
         }
         #endregion
 
@@ -86,4 +87,3 @@ namespace ChatApp.Service.Services
         #endregion
     }
 }
-
