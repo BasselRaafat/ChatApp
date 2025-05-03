@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ChatApp.Core.Entities.Chat>
+﻿@model IEnumerable<ChatApp.MVC.Models.ChatViewModel>
 
 @{
     ViewBag.Title = "Your Chats";
@@ -26,10 +26,10 @@
                         @foreach (var chat in Model)
                         {
                             <a href="@Url.Action("Index", new { chatId = chat.Id })" class="chat-item">
-                                <div class="avatar">
-                                    <img src="https://bootdey.com/img/Content/avatar/avatar3.png" alt="@chat.Name" />
-                                    <div class="status offline"></div>
-                                </div>
+                                @* <div class="avatar"> *@
+                                @*     <img src="https://bootdey.com/img/Content/avatar/avatar3.png" alt="@chat.Name" /> *@
+                                @*     <div class="status offline"></div> *@
+                                @* </div> *@
                                 <div class="chat-info">
                                     <div class="name">@chat.Name</div>
                                     <div class="last-message">

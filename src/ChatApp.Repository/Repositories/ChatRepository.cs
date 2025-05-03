@@ -16,6 +16,8 @@ public class ChatRepository : GenericRepository<Chat>, IChatRepository
         return await _dbContext
             .Chats.Where(C => C.ChatParticipants.SingleOrDefault(CP => CP.UserId == userId) != null)
             .Include(C => C.LastMessageSent)
+            .Include(c => c.ChatParticipants)
+            .ThenInclude(cp => cp.User)
             .OrderByDescending(C => C.LastTimeActive)
             .ToListAsync();
 

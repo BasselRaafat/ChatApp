@@ -3,6 +3,7 @@ using ChatApp.Core.Entities;
 using ChatApp.Core.Interfaces.Repositories;
 using ChatApp.Core.Interfaces.Service;
 using ChatApp.MVC.Hubs;
+using ChatApp.MVC.Models;
 using ChatApp.Repository.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -70,7 +71,25 @@ public class ChatController : Controller
             return Unauthorized();
 
         var chats = await _chatService.GetUserChats(userId);
-        return View(chats);
+        var chatViewModel = new List<ChatViewModel>();
+        foreach (var chat in chats)
+        {
+            chatViewModel.Add(
+                new ChatViewModel()
+                {
+                    Name = chat
+                        .ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)
+                        ?.User.DisplayName,
+                    IsGroup = chat.IsGroup,
+                    LastTimeActive = chat.LastTimeActive,
+                    LastMessageSentId = chat.LastMessageSentId,
+                    LastMessageSent = chat.LastMessageSent,
+                    Messages = chat.Messages,
+                    ChatParticipants = chat.ChatParticipants,
+                }
+            );
+        }
+        return View(chatViewModel);
     }
     #endregion
 
