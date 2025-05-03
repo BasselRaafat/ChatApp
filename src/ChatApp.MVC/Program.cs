@@ -1,6 +1,8 @@
 using ChatApp.Core.Entities;
 using ChatApp.Core.Interfaces.Repositories;
 using ChatApp.Core.Interfaces.Service;
+using ChatApp.MVC.Hubs;
+using ChatApp.MVC.Hubs.Interfaces;
 using ChatApp.Repository.Data;
 using ChatApp.Repository.Repositories;
 using ChatApp.Service.Services;
@@ -33,6 +35,9 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// Register SignalR
+builder.Services.AddSignalR(); // Required for using hubs
 
 var app = builder.Build();
 
