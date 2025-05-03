@@ -72,11 +72,29 @@ public class ChatController : Controller
 
         var chats = await _chatService.GetUserChats(userId);
         var chatViewModel = new List<ChatViewModel>();
-        foreach (var chat in chats)
+       foreach (var chat in chats)
         {
+            if (chat.IsGroup)
+            {
+
+                chatViewModel.Add(
+                    new ChatViewModel()
+                    {
+                        Id=chat.Id,
+                        Name = chat.Name,
+                        IsGroup = chat.IsGroup,
+                        LastTimeActive = chat.LastTimeActive,
+                        LastMessageSentId = chat.LastMessageSentId,
+                        LastMessageSent = chat.LastMessageSent,
+                        Messages = chat.Messages,
+                        ChatParticipants = chat.ChatParticipants,
+                    });
+            }
+            else { 
             chatViewModel.Add(
                 new ChatViewModel()
                 {
+                    Id = chat.Id,
                     Name = chat
                         .ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)
                         ?.User.DisplayName,
@@ -87,7 +105,7 @@ public class ChatController : Controller
                     Messages = chat.Messages,
                     ChatParticipants = chat.ChatParticipants,
                 }
-            );
+            );}
         }
         return View(chatViewModel);
     }
@@ -242,11 +260,21 @@ public class ChatController : Controller
         return RedirectToAction("Index", new { chatId = chat.Id });
     }
 
+    [HttpGet]
+    public async Task<IActionResult> AddToGroupAsync(string chatId)
+    {
+        var users = await _userRepository.GetUsersNotInChatAsync(chatId); // Your repository logic
+        ViewBag.Users = users;
+        ViewBag.ChatId = chatId;
+        return View();
+    }
+
     [HttpPost]
     public async Task<IActionResult> AddToGroup(string userId, string chatId)
     {
         var participants = new ChatParticipant() { UserId = userId, ChatId = chatId };
         await chatParticipantRepo.AddAsync(participants);
+        await chatParticipantRepo.SaveChangesAsync();
         return RedirectToAction("Index", new(chatId));
     }
 }

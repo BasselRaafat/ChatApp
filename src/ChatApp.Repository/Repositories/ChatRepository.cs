@@ -35,6 +35,7 @@ public class ChatRepository : GenericRepository<Chat>, IChatRepository
         return await _dbContext
             .Chats.Include(C => C.Messages)
             .ThenInclude(m => m.Sender)
+            .Include(c => c.ChatParticipants)
             .Where(C => C.Id == id)
             .FirstOrDefaultAsync();
     }

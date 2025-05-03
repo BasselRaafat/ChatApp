@@ -21,7 +21,8 @@ public class ChatHub : Hub<IChatHub>
         IChatService chatService,
         IUserConnectionRepository userConnectionRepo,
         IChatRepository chatRepo,
-        UserManager<AppUser> userManager)
+        UserManager<AppUser> userManager
+    )
     {
         _chatService = chatService;
         _userConnectionRepo = userConnectionRepo;
@@ -45,10 +46,17 @@ public class ChatHub : Hub<IChatHub>
         var displayName = user?.DisplayName ?? "Unknown";
 
         var timestamp = DateTime.UtcNow;
-
+        var chat =
+            await _chatRepo.GetChatWithMessagesAsync(chatId)
+            ?? throw new Exception("chatnot found");
+        var reciverId =
+            (chat.ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)?.UserId)
+            ?? throw new Exception("user not found");
+        var UserConnections = await _userConnectionRepo.GetAllUserConnections(reciverId);
         // Send message to group
-        await Clients.Group(chatId)
-            .ReceiveMessage(chatId, userId, message, timestamp, displayName);
+            await Clients
+                .Group(chatId)
+                .ReceiveMessage(chatId, userId, message, timestamp, displayName);
     }
 
     #endregion
@@ -64,14 +72,13 @@ public class ChatHub : Hub<IChatHub>
 
         var exists = await _userConnectionRepo.GetByConnectionIdAsync(connectionId);
 
-        if (exists is not null)
+        if (exists is null)
         {
             await _userConnectionRepo.AddAsync(
                 new UserConnection { UserId = userId, ConnectionId = connectionId }
             );
-            await _userConnectionRepo.SaveChangesAsync();
         }
-
+        await _userConnectionRepo.SaveChangesAsync();
         var groupsIds = await _chatRepo.GetAllGroupIdsAsync(userId);
         foreach (var groupId in groupsIds)
             await Groups.AddToGroupAsync(connectionId, groupId);
