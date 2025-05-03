@@ -4,6 +4,7 @@ using ChatApp.Core.Interfaces.Repositories;
 using ChatApp.Core.Interfaces.Service;
 using ChatApp.MVC.Hubs.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.MVC.Hubs;
@@ -14,16 +15,18 @@ public class ChatHub : Hub<IChatHub>
     private readonly IChatService _chatService;
     private readonly IUserConnectionRepository _userConnectionRepo;
     private readonly IChatRepository _chatRepo;
+    private readonly UserManager<AppUser> _userManager;
 
     public ChatHub(
         IChatService chatService,
         IUserConnectionRepository userConnectionRepo,
-        IChatRepository chatRepo
-    )
+        IChatRepository chatRepo,
+        UserManager<AppUser> userManager)
     {
         _chatService = chatService;
         _userConnectionRepo = userConnectionRepo;
         _chatRepo = chatRepo;
+        _userManager = userManager;
     }
 
     #region Send Message
@@ -34,11 +37,18 @@ public class ChatHub : Hub<IChatHub>
         if (string.IsNullOrWhiteSpace(userId))
             throw new UnauthorizedAccessException("User not authenticated.");
 
+        // Send and persist the message
         await _chatService.SendMessage(chatId, userId, message);
 
+        // Get display name of sender
+        var user = await _userManager.FindByIdAsync(userId); // You must have this method
+        var displayName = user?.DisplayName ?? "Unknown";
+
         var timestamp = DateTime.UtcNow;
-        // await Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, userId, message, timestamp);
-        await Clients.Group(chatId).ReceiveMessage(chatId, userId, message, timestamp);
+
+        // Send message to group
+        await Clients.Group(chatId)
+            .ReceiveMessage(chatId, userId, message, timestamp, displayName);
     }
 
     #endregion

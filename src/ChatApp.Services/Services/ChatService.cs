@@ -62,13 +62,17 @@ namespace ChatApp.Service.Services
         public async Task<IEnumerable<ChatMessage>> GetMessages(string chatId)
         {
             var chat = await _chatRepository.GetChatWithMessagesAsync(chatId);
-
+            
+            
             if (chat == null)
                 throw new ArgumentNullException(nameof(chat), "Chat not found.");
             if (chat.Messages == null)
                 throw new ArgumentNullException(nameof(chat.Messages), "Messages not found.");
 
-            return chat.Messages;
+            var messages = chat.Messages.OrderBy(m => m.Date);
+            
+
+            return messages;
         }
         #endregion
 
