@@ -48,6 +48,37 @@ public class ChatController : Controller
 
         if (userChat == null)
             return NotFound();
+        ChatViewModel chatViewModel;
+        if (userChat.IsGroup)
+        {
+            chatViewModel = new()
+            {
+                Id = userChat.Id,
+                Name = userChat.Name,
+                IsGroup = userChat.IsGroup,
+                LastTimeActive = userChat.LastTimeActive,
+                LastMessageSentId = userChat.LastMessageSentId,
+                LastMessageSent = userChat.LastMessageSent,
+                Messages = userChat.Messages,
+                ChatParticipants = userChat.ChatParticipants,
+            };
+        }
+        else
+        {
+            chatViewModel = new()
+            {
+                Id = userChat.Id,
+                Name = userChat
+                    .ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)
+                    ?.User.DisplayName,
+                IsGroup = userChat.IsGroup,
+                LastTimeActive = userChat.LastTimeActive,
+                LastMessageSentId = userChat.LastMessageSentId,
+                LastMessageSent = userChat.LastMessageSent,
+                Messages = userChat.Messages,
+                ChatParticipants = userChat.ChatParticipants,
+            };
+        }
 
         // Populate ViewBag with messages and online users
         ViewBag.Messages = await _chatService.GetMessages(chatId);
@@ -59,7 +90,7 @@ public class ChatController : Controller
 
         await _chatService.JoinChat(chatId, userId);
 
-        return View("Index", userChat);
+        return View("Index", chatViewModel);
     }
     #endregion
 
@@ -72,15 +103,14 @@ public class ChatController : Controller
 
         var chats = await _chatService.GetUserChats(userId);
         var chatViewModel = new List<ChatViewModel>();
-       foreach (var chat in chats)
+        foreach (var chat in chats)
         {
             if (chat.IsGroup)
             {
-
                 chatViewModel.Add(
                     new ChatViewModel()
                     {
-                        Id=chat.Id,
+                        Id = chat.Id,
                         Name = chat.Name,
                         IsGroup = chat.IsGroup,
                         LastTimeActive = chat.LastTimeActive,
@@ -88,24 +118,27 @@ public class ChatController : Controller
                         LastMessageSent = chat.LastMessageSent,
                         Messages = chat.Messages,
                         ChatParticipants = chat.ChatParticipants,
-                    });
+                    }
+                );
             }
-            else { 
-            chatViewModel.Add(
-                new ChatViewModel()
-                {
-                    Id = chat.Id,
-                    Name = chat
-                        .ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)
-                        ?.User.DisplayName,
-                    IsGroup = chat.IsGroup,
-                    LastTimeActive = chat.LastTimeActive,
-                    LastMessageSentId = chat.LastMessageSentId,
-                    LastMessageSent = chat.LastMessageSent,
-                    Messages = chat.Messages,
-                    ChatParticipants = chat.ChatParticipants,
-                }
-            );}
+            else
+            {
+                chatViewModel.Add(
+                    new ChatViewModel()
+                    {
+                        Id = chat.Id,
+                        Name = chat
+                            .ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)
+                            ?.User.DisplayName,
+                        IsGroup = chat.IsGroup,
+                        LastTimeActive = chat.LastTimeActive,
+                        LastMessageSentId = chat.LastMessageSentId,
+                        LastMessageSent = chat.LastMessageSent,
+                        Messages = chat.Messages,
+                        ChatParticipants = chat.ChatParticipants,
+                    }
+                );
+            }
         }
         return View(chatViewModel);
     }

@@ -1,8 +1,8 @@
-﻿@model ChatApp.Core.Entities.Chat
+﻿@model ChatApp.MVC.Models.ChatViewModel
 @using System.Security.Claims
 
 @{
-    ViewBag.Title = "Chat: " + Model.Name;
+    ViewBag.Title = Model.Name;
     var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 }
 
@@ -18,7 +18,7 @@
             <div class="col-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
                 <div class="col-inside-lg decor-default">
                     <div class="chat-body" id="chatBody">
-                        <h6>Mini Chat</h6>
+                        <h6>@ViewBag.Title</h6>
                         @foreach (var message in ViewBag.Messages ?? Enumerable.Empty<dynamic>())
                         {
                             <div class="answer @(message.SenderId == currentUserId ? "right" : "left")">
