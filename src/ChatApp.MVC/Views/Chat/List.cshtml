@@ -14,7 +14,14 @@
             <div class="col-sm-12">
                 <div class="col-inside-lg decor-default" style="overflow: hidden; outline: none;" tabindex="5000">
                     <h6>Your Chats</h6>
-
+                    <div>
+                        <a href="@Url.Action("CreateGroup")" class="btn btn-primary btn-sm me-2">
+                            <i class="fa fa-users"></i> Create Group
+                        </a>
+                        <a href="@Url.Action("Create")" class="btn btn-secondary btn-sm">
+                            <i class="fa fa-user-plus"></i> Add User Chat
+                        </a>
+                    </div>
                     <div class="chat-list">
                         @foreach (var chat in Model)
                         {

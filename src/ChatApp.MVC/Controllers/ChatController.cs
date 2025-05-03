@@ -199,6 +199,12 @@ public class ChatController : Controller
 
 
     #endregion
+    [HttpGet]
+    public IActionResult CreateGroup()
+    {
+        return View();
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateGroup(string groupName)
     {
