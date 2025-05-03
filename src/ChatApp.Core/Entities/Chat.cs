@@ -12,9 +12,9 @@ public class Chat : BaseEntity
     public string? Name { get; set; }
     public DateTime LastTimeActive { get; set; } = DateTime.UtcNow;
 
-    public string LastMessageSentId { get; set; } = default!;
-    public ChatMessage LastMessageSent { get; set; } = default!;
+    public string? LastMessageSentId { get; set; } = default!;
+    public ChatMessage? LastMessageSent { get; set; } = default!;
 
-    public ICollection<ChatMessage> Messages { get; set; } = default!;
+    public ICollection<ChatMessage> Messages { get; set; } = [];
     public ICollection<ChatParticipant> ChatParticipants { get; set; } = [];
 }
