@@ -33,6 +33,7 @@ builder
 // Register services with ASP.NET Core DI (since Unity setup was removed earlier)
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped< ChatParticipantRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
 builder.Services.AddScoped<IUserConnectionRepository, UserConnectionRepository>();
