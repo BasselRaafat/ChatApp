@@ -2,6 +2,7 @@ using System.Security.Claims;
 using ChatApp.Core.Entities;
 using ChatApp.Core.Interfaces.Repositories;
 using ChatApp.Core.Interfaces.Service;
+using ChatApp.MVC.Hubs.Interfaces;
 using ChatApp.Repository.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace ChatApp.MVC.Hubs;
 
 [Authorize]
-public class ChatHub : Hub
+public class ChatHub : Hub<IChatHub>
 {
     private readonly IChatService _chatService;
     private readonly IUserConnectionRepository _userConnectionRepo;
@@ -37,13 +38,13 @@ public class ChatHub : Hub
         await _chatService.SendMessage(chatId, userId, message);
 
         var timestamp = DateTime.UtcNow;
-        await Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, userId, message, timestamp);
+        // await Clients.Group(chatId).SendAsync("ReceiveMessage", chatId, userId, message, timestamp);
+        await Clients.Group(chatId).ReceiveMessage(chatId, userId, message, timestamp);
     }
 
     #endregion
 
     #region On Connected
-
     public override async Task OnConnectedAsync()
     {
         var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
