@@ -2,7 +2,119 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="home">
+    <header class="header">
+        <h1>ChatWave</h1>
+        <p class="subtitle">Simple, lightweight chat application</p>
+        <div class="actions">
+            <a href="/Chat" class="button">Start Chatting</a>
+            <button id="techDetailsBtn" class="button outline">Tech Details</button>
+        </div>
+    </header>
+
+    <section class="section">
+        <h2>Technology Stack</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>ASP.NET MVC</h3>
+                <p>Backend framework for web applications</p>
+            </div>
+            <div class="card">
+                <h3>SQL Server</h3>
+                <p>Database for secure data storage</p>
+            </div>
+            <div class="card">
+                <h3>SignalR</h3>
+                <p>Real-time communication</p>
+            </div>
+            <div class="card">
+                <h3>Entity Framework</h3>
+                <p>Database ORM</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Key Features</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>Real-time Chat</h3>
+                <p>Instant messaging with other users</p>
+            </div>
+            <div class="card">
+                <h3>Group Chats</h3>
+                <p>Create and join group conversations</p>
+            </div>
+            <div class="card">
+                <h3>Secure</h3>
+                <p>Authentication and data protection</p>
+            </div>
+            <div class="card">
+                <h3>Responsive</h3>
+                <p>Works on all devices</p>
+            </div>
+        </div>
+    </section>
 </div>
+
+<!-- Modal -->
+<div id="techModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Technology Details</h2>
+            <button class="close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <h3>Backend</h3>
+            <ul>
+                <li>ASP.NET MVC</li>
+                <li>.NET 6.0</li>
+                <li>C# 10</li>
+            </ul>
+            
+            <h3>Database</h3>
+            <ul>
+                <li>SQL Server</li>
+                <li>Entity Framework Core</li>
+            </ul>
+            
+            <h3>Frontend</h3>
+            <ul>
+                <li>Razor Pages</li>
+                <li>SignalR</li>
+                <li>Vanilla JavaScript</li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <button class="button" id="closeTechModal">Close</button>
+        </div>
+    </div>
+    <div class="modal-overlay"></div>
+</div>
+
+<script>
+    document.getElementById('techDetailsBtn').addEventListener('click', function () {
+        document.getElementById('techModal').classList.add('show');
+    });
+
+    document.querySelector('.close').addEventListener('click', function () {
+        document.getElementById('techModal').classList.remove('show');
+    });
+
+    document.getElementById('closeTechModal').addEventListener('click', function () {
+        document.getElementById('techModal').classList.remove('show');
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function (event) {
+        const modal = document.getElementById('techModal');
+        if (event.target.classList.contains('modal-overlay')) {
+            modal.classList.remove('show');
+        }
+    });
+</script>
+
+@section Styles
+{
+    <link href="css/home.css" rel="stylesheet">
+}

@@ -15,32 +15,28 @@
 <div class="container">
     <div class="content container-fluid bootstrap snippets bootdey">
         <div class="row row-broken">
-            <div class="col-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
-                <div class="col-inside-lg decor-default">
+            <div class="col-12 chat" style="overflow-y: auto; outline: none; height: calc(100vh - 150px);" tabindex="5001">
+                <div class="col-inside-lg decor-modern">
                     <div class="chat-body" id="chatBody">
-                        <h6>@ViewBag.Title</h6>
+                        <h6 class="chat-header">@ViewBag.Title</h6>
                         @foreach (var message in ViewBag.Messages ?? Enumerable.Empty<dynamic>())
                         {
                             <div class="answer @(message.SenderId == currentUserId ? "right" : "left")">
-                                <div class="avatar">
-                                    <img src="@(message.SenderId == currentUserId ? "https://bootdey.com/img/Content/avatar/avatar2.png" : "https://bootdey.com/img/Content/avatar/avatar1.png")" 
-                                         alt="@message.Sender.DisplayName" onerror="this.src='/images/default-avatar.png'" />
-                                </div>
-                                <div class="name">@message.Sender.DisplayName</div>
-                                <div class="text">@Html.Raw(System.Web.HttpUtility.HtmlEncode(message.MessageText))</div>
-                                <div class="time">@message.Date.ToString("hh:mm tt")</div>
+                                <div class="name fw-bold text-primary">@message.Sender.DisplayName</div>
+                                <div class="text bg-light p-2 rounded">@message.MessageText</div>
+                                <div class="time text-muted small">@message.Date.ToString("hh:mm tt")</div>
                             </div>
                         }
+                        <div id="scroll-anchor" class="scroll-anchor"></div>
                     </div>
-				</div>
-			</div>
-			<div class="answer-add mt-3 d-flex">
-				<input id="messageInput" class="form-control" placeholder="Write a message" />
-				<button id="sendMessageBtn" class="btn btn-primary ms-2" disabled>
-					<i class="fa fa-paper-plane"></i>
-				</button>
-			</div>
-
+                </div>
+            </div>
+            <div class="answer-add mt-3 d-flex">
+                <input id="messageInput" class="form-control rounded-pill" placeholder="Write a message" />
+                <button id="sendMessageBtn" class="btn btn-primary rounded-pill ms-2" disabled>
+                    <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -51,28 +47,39 @@
     const chatId = '@Model.Id';
 
     function scrollToBottom() {
-        const chatBody = document.getElementById("chatBody");
-        if (chatBody) chatBody.scrollTop = chatBody.scrollHeight;
+        const anchor = document.getElementById("scroll-anchor");
+        if (anchor) {
+            anchor.scrollIntoView({ behavior: 'smooth' });
+        }
     }
 
     function escapeHtml(unsafe) {
-        return unsafe?.replace(/&/g, '&amp;')
-                      .replace(/</g, '&lt;')
-                      .replace(/>/g, '&gt;')
-                      .replace(/"/g, '&quot;')
-                      .replace(/'/g, '&#39;') || '';
+        if (!unsafe) return '';
+        return unsafe.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/chatHub")
-        .withAutomaticReconnect()
+        .withAutomaticReconnect({
+            nextRetryDelayInMilliseconds: retryContext => {
+                if (retryContext.elapsedMilliseconds < 60000) {
+                    return Math.random() * 2000 + 1000;
+                }
+                return null;
+            }
+        })
         .build();
 
     connection.onclose(() => {
         const sendBtn = document.getElementById("sendMessageBtn");
         if (sendBtn) {
             sendBtn.disabled = true;
-            sendBtn.textContent = "Reconnecting...";
+            sendBtn.innerHTML = '<i class="fa fa-sync-alt"></i> Reconnecting...';
         }
     });
 
@@ -93,17 +100,26 @@
         if (chatBody) {
             const html = `
                 <div class="answer ${isMine ? "right" : "left"}">
-                    <div class="avatar">
-                        <img src="${isMine ? "https://bootdey.com/img/Content/avatar/avatar2.png" : "https://bootdey.com/img/Content/avatar/avatar1.png"}" 
-                             alt="${escapeHtml(displayName)}" onerror="this.src='/images/default-avatar.png'" />
-                    </div>
-                    <div class="name">${escapeHtml(displayName)}</div>
-                    <div class="text">${escapeHtml(messageText)}</div>
-                    <div class="time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div class="name fw-bold text-primary">${escapeHtml(displayName)}</div>
+                    <div class="text bg-light p-2 rounded">${escapeHtml(messageText)}</div>
+                    <div class="time text-muted small">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </div>`;
-            chatBody.insertAdjacentHTML("beforeend", html);
+            
+            // Insert before the scroll anchor to maintain proper order
+            const anchor = document.getElementById("scroll-anchor");
+            if (anchor) {
+                anchor.insertAdjacentHTML("beforebegin", html);
+            } else {
+                chatBody.insertAdjacentHTML("beforeend", html);
+            }
+            
             scrollToBottom();
         }
+    });
+
+    // Initialize chat and scroll to bottom
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollToBottom();
     });
 
     connection.start().then(() => {
@@ -113,12 +129,17 @@
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<i class="fa fa-paper-plane"></i>';
         }
-        connection.invoke("JoinChat", chatId).catch(err => console.error("JoinChat failed:", err));
+        return connection.invoke("JoinChat", chatId);
+    }).then(() => {
+        console.log("Joined chat successfully");
         scrollToBottom();
     }).catch(err => {
         console.error("SignalR connection failed:", err);
         const sendBtn = document.getElementById("sendMessageBtn");
-        if (sendBtn) sendBtn.textContent = "Connection Failed";
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fa fa-exclamation-circle"></i> Connection Failed';
+        }
     });
 
     function sendMessage() {
@@ -128,15 +149,20 @@
         if (!messageText) return;
 
         sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+        
         connection.invoke("SendMessage", chatId, messageText)
             .then(() => {
                 messageInput.value = "";
                 sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fa fa-paper-plane"></i>';
                 scrollToBottom();
             })
             .catch(err => {
                 console.error("Send message failed:", err);
                 sendBtn.disabled = false;
+                sendBtn.innerHTML = '<i class="fa fa-paper-plane"></i>';
+                alert("Failed to send message. Please try again.");
             });
     }
 
@@ -148,4 +174,3 @@
         }
     });
 </script>
-    

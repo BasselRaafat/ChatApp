@@ -1,0 +1,58 @@
+﻿@* @model IEnumerable<ChatApp.MVC.Models.UserViewModel> *@
+@* *@
+@* @{ *@
+@*     ViewData["Title"] = "User List"; *@
+@* } *@
+@* *@
+@* <div class="card user-list-container"> *@
+@*     <div class="user-list-header"> *@
+@*         <h2><i class="fas fa-users"></i> User List</h2> *@
+@*         <div class="user-actions"> *@
+@*             <a href="@Url.Action("Create")" class="btn btn-secondary"> *@
+@*                 <i class="fas fa-user-plus"></i> Add New User *@
+@*             </a> *@
+@*         </div> *@
+@*     </div> *@
+@* *@
+@*     <div class="user-search"> *@
+@*         <i class="fas fa-search"></i> *@
+@*         <input type="text" placeholder="Search users..." class="input-field search-input"> *@
+@*     </div> *@
+@* *@
+@*     <div class="scrollable user-items-container"> *@
+@*         @foreach (var user in Model) *@
+@*         { *@
+@*             <div class="user-item"> *@
+@*                 *@
+@*                 <div class="user-content"> *@
+@*                     <div class="user-info"> *@
+@*                         <span class="user-name">@user.FullName</span> *@
+@*                         <span class="user-email">@user.Email</span> *@
+@*                     </div> *@
+@*                     <p class="user-status"> *@
+@*                         Status: @(user.IsOnline ? "Online" : "Offline") *@
+@*                     </p> *@
+@*                 </div> *@
+@*                 <div class="user-actions"> *@
+@*                     <a href="@Url.Action("Edit", new { id = user.Id })" class="btn btn-sm btn-primary"> *@
+@*                         <i class="fas fa-edit"></i> Edit *@
+@*                     </a> *@
+@*                     <form asp-action="Delete" asp-route-id="@user.Id" method="post" class="inline-form"> *@
+@*                         <button type="submit" class="btn btn-sm btn-danger"> *@
+@*                             <i class="fas fa-trash"></i> Delete *@
+@*                         </button> *@
+@*                     </form> *@
+@*                 </div> *@
+@*             </div> *@
+@*         } *@
+@*     </div> *@
+@* </div> *@
+@* *@
+@* @section Styles { *@
+@*     <link href="~/css/userList.css" rel="stylesheet" asp-append-version="true" /> *@
+@* } *@
+@* *@
+@* @section Scripts { *@
+@*     <script src="~/js/site.js" asp-append-version="true"></script> *@
+@* } *@
+@* } *@
