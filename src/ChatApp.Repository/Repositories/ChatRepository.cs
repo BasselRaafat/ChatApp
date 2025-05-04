@@ -30,6 +30,28 @@ public class ChatRepository : GenericRepository<Chat>, IChatRepository
         //     .ToListAsync();
     }
 
+    public async Task<IEnumerable<Chat>> GetAllUserPrivateChat(string userId)
+    {
+        return await _dbContext
+            .Chats.Where(c=>!c.IsGroup).Where(C => C.ChatParticipants.SingleOrDefault(CP => CP.UserId == userId) != null)
+            .Include(C => C.LastMessageSent)
+            .Include(c => c.ChatParticipants)
+            .ThenInclude(cp => cp.User)
+            .OrderByDescending(C => C.LastTimeActive)
+            .ToListAsync();
+
+    }
+    public async Task<IEnumerable<Chat>> GetAllUserGroupChats(string userId)
+    {
+        return await _dbContext
+            .Chats.Where(c=>c.IsGroup).Where(C => C.ChatParticipants.SingleOrDefault(CP => CP.UserId == userId) != null)
+            .Include(C => C.LastMessageSent)
+            .Include(c => c.ChatParticipants)
+            .ThenInclude(cp => cp.User)
+            .OrderByDescending(C => C.LastTimeActive)
+            .ToListAsync();
+
+    }
     public async Task<Chat?> GetChatWithMessagesAsync(string id)
     {
         return await _dbContext

@@ -39,6 +39,7 @@ builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
 builder.Services.AddScoped<IUserConnectionRepository, UserConnectionRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+
 // Register SignalR
 builder.Services.AddSignalR(); // Required for using hubs
 

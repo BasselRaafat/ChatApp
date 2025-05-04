@@ -43,7 +43,7 @@ public class ChatController : Controller
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var userChats = await _chatService.GetUserChats(userId);
+        var userChats = await _chatRepository.GetAllUserPrivateChat(userId);
         var userChat = userChats.FirstOrDefault(c => c.Id == chatId);
 
         if (userChat == null)
@@ -101,7 +101,7 @@ public class ChatController : Controller
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var chats = await _chatService.GetUserChats(userId);
+        var chats = await _chatRepository.GetAllUserChatsAsync(userId);
         var chatViewModel = new List<ChatViewModel>();
         foreach (var chat in chats)
         {
@@ -268,7 +268,6 @@ public class ChatController : Controller
     #region Create and add to group
 
 
-    #endregion
     [HttpGet]
     public IActionResult CreateGroup()
     {
@@ -310,4 +309,59 @@ public class ChatController : Controller
         await chatParticipantRepo.SaveChangesAsync();
         return RedirectToAction("Index", new(chatId));
     }
+    #endregion
+
+    #region Group
+
+    [HttpGet]
+    public async Task<IActionResult> GroupChat()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var chats = await _chatRepository.GetAllUserGroupChats(userId);
+        var chatViewModel = new List<ChatViewModel>();
+        foreach (var chat in chats)
+        {
+            if (chat.IsGroup)
+            {
+                chatViewModel.Add(
+                    new ChatViewModel()
+                    {
+                        Id = chat.Id,
+                        Name = chat.Name,
+                        IsGroup = chat.IsGroup,
+                        LastTimeActive = chat.LastTimeActive,
+                        LastMessageSentId = chat.LastMessageSentId,
+                        LastMessageSent = chat.LastMessageSent,
+                        Messages = chat.Messages,
+                        ChatParticipants = chat.ChatParticipants,
+                    }
+                );
+            }
+            else
+            {
+                chatViewModel.Add(
+                    new ChatViewModel()
+                    {
+                        Id = chat.Id,
+                        Name = chat
+                            .ChatParticipants.FirstOrDefault(cp => cp.UserId != userId)
+                            ?.User.DisplayName,
+                        IsGroup = chat.IsGroup,
+                        LastTimeActive = chat.LastTimeActive,
+                        LastMessageSentId = chat.LastMessageSentId,
+                        LastMessageSent = chat.LastMessageSent,
+                        Messages = chat.Messages,
+                        ChatParticipants = chat.ChatParticipants,
+                    }
+                );
+            }
+        }
+        return View(chatViewModel);
+    }
+    
+
+    #endregion
 }
