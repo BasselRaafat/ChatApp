@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace ChatApp.MVC.Hubs;
 
 [Authorize]
-public class ChatHub : Hub<IChatHub>
+public class ChatHub : Hub<IChatClient>
 {
     private readonly IChatService _chatService;
     private readonly IUserConnectionRepository _userConnectionRepo;
@@ -54,6 +54,7 @@ public class ChatHub : Hub<IChatHub>
         //     ?? throw new Exception("user not found");
         // var UserConnections = await _userConnectionRepo.GetAllUserConnections(reciverId);
         // Send message to group
+        // await Clients.User(userId).ReceiveMessage(chatId, userId, message, timestamp, displayName);
         await Clients.Group(chatId).ReceiveMessage(chatId, userId, message, timestamp, displayName);
     }
 

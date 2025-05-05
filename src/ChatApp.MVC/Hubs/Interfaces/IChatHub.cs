@@ -1,6 +1,12 @@
 namespace ChatApp.MVC.Hubs.Interfaces;
 
-public interface IChatHub
+public interface IChatClient
 {
-    Task ReceiveMessage(string chatId, string userId, string message, DateTime timestamp ,string displayName);
+    Task ReceiveMessage(
+        string chatId,
+        string userId,
+        string message,
+        DateTime timestamp,
+        string displayName
+    );
 }
